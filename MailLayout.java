@@ -62,7 +62,7 @@ public class MailLayout extends JFrame implements ActionListener, FocusListener
         subjectField.addFocusListener(this);
 
         // JComboBox
-        String[] fromAddr = { "anna@gmail.com", "anna.ntenta@gmail.com", "anna.e.mckelvey@gmail.com" };
+        String[] fromAddr = { "Anna Ntenta <ntenta@fas.harvard.edu>", "Anna Ntenta <anna.ntenta@gmail.com>", "Anna McKelvey <anna.e.mckelvey@gmail.com>" };
         fromField = new JComboBox<>(fromAddr);
 
         // "send" button
