@@ -13,7 +13,7 @@ import javax.swing.*;                // Swing components
 import java.awt.*;                   // Colors, Fonts, etc.
 import java.io.*;                    // File I/O
 import java.awt.event.*;             // ActionListener, etc.
-import java.util.*;                  // Scanner class
+import java.util.*;                  
 import javax.swing.border.*;
 
 public class MailLayout extends JFrame implements ActionListener, FocusListener
@@ -62,7 +62,9 @@ public class MailLayout extends JFrame implements ActionListener, FocusListener
         subjectField.addFocusListener(this);
 
         // JComboBox
-        String[] fromAddr = { "Anna Ntenta <ntenta@fas.harvard.edu>", "Anna Ntenta <anna.ntenta@gmail.com>", "Anna McKelvey <anna.e.mckelvey@gmail.com>" };
+        String[] fromAddr = { "Anna Ntenta <ntenta@fas.harvard.edu>", 
+        					  "Anna Ntenta <anna.ntenta@gmail.com>", 
+        					  "Anna McKelvey <anna.e.mckelvey@gmail.com>" };
         fromField = new JComboBox<>(fromAddr);
 
         // "send" button
