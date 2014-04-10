@@ -11,7 +11,7 @@
 * is displayed.
 *
 * @author	Anna Ntenta
-* @version	1.0 Last Modified 4/8/2014
+* @version	1.0 Last Modified 4/9/2014
 */
 
 import javax.swing.*;                // Swing components
