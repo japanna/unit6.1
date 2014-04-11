@@ -133,6 +133,23 @@ public class Calculator extends JFrame implements ActionListener
 	
 	}
 
+	// calculates square root
+	public void calc(Double first, String operand)
+	{
+		if(operand == "\u221A")
+		result = Math.sqrt(first);
+
+		// clear num1
+    	num1.setLength(0);
+    	// clear num2
+    	num2.setLength(0);
+    	display.setText(null);
+		num1.append(result);
+		//operators = false;
+		display.append(result.toString());
+		System.out.println("Num 1 now (one number calc): " + num1);
+	}
+
 	public void calc(Double first, Double second, String operand)
 	{
 		if(operand == "+")
@@ -142,7 +159,7 @@ public class Calculator extends JFrame implements ActionListener
 		if(operand == "*")
 		result = first * second;
 		if((operand == "/") && second != 0)
-		result = (double)Math.round((first / second) * 100000) / 100000;
+		result = first / second;
 
 		//System.out.println(result);
 		// clear num1
@@ -151,41 +168,16 @@ public class Calculator extends JFrame implements ActionListener
     	num2.setLength(0);
     	display.setText(null);
 		num1.append(result);
-		operators = false;
+		//operators = false;
 		display.append(result.toString());
-		System.out.println("Num 1 now: " + num1);
+		System.out.println("Num 1 now (two number calc): " + num1);
 
 
 	}
 
 	public void actionPerformed( ActionEvent ae )
     {
-    	// check if user clicked an operator after a number has been entered
-    	if((num1.length() > 0) && ((ae.getSource() == plus) || (ae.getSource() == minus) ||
-    		(ae.getSource() == div) || (ae.getSource() == mult) ||
-    		(ae.getSource() == root))) {
-    			// indicate that first number has been entered
-	    		operators = true;
-	    		// store first number as a Double
-	    		firstNum = Double.parseDouble(num1.toString());
-	    		System.out.println(firstNum);
-	    		// store source of operator in variable
-	    		operator = (((JButton)ae.getSource()).getText());
-	    		System.out.println(operator);
-    	}
-    	// check if user clicked the equal sign after 
-    	// two numbers were entered
-    	if((ae.getSource() == equals) && (num1.length() > 0) && 
-    		(num2.length() > 0)) {
-    		// store second number as a Double
-    		secondNum = Double.parseDouble(num2.toString());
-    		// send numbers and operator to calc()
-    		calc(firstNum, secondNum, operator);
-
-    	}
-
-
-    	// check of this is the beginning of the first number
+    	// the first number entered after clear or launch
     	if(operators == false) {
     		// disallow leading zeros 
     		if((ae.getSource() == jb[0]) && (num1.length() != 0) && 
@@ -218,7 +210,35 @@ public class Calculator extends JFrame implements ActionListener
 	    		System.out.println("Num1: " + num1.toString());
     		}
     	}
-    	// second number (an operator has been typed in)
+
+    	// check if user clicked square root after a number has been entered
+    	if((num1.length() > 0) && ((ae.getSource() == root))) {
+    		// indicate that first number has been entered
+	    		operators = true;
+	    		// store first number as a Double
+	    		firstNum = Double.parseDouble(num1.toString());
+	    		System.out.println(firstNum);
+	    		// store source of operator in variable
+	    		operator = (((JButton)ae.getSource()).getText());
+
+	    		// send number and operator to calc()
+    			calc(firstNum, operator);
+    	}
+
+    	// check if user clicked an operator other than root after one number has been entered
+    	if(((num1.length() > 0) && (num2.length() == 0)) && ((ae.getSource() == plus) || (ae.getSource() == minus) ||
+    		(ae.getSource() == div) || (ae.getSource() == mult))) {
+    			// set operator click to "true"
+	    		operators = true;
+	    		// store first number as a Double
+	    		firstNum = Double.parseDouble(num1.toString());
+	    		System.out.println(firstNum);
+	    		// store source of operator in variable
+	    		operator = (((JButton)ae.getSource()).getText());
+	    		System.out.println(operator);
+    	}
+
+    	// second number (only stored after an operator has been typed in)
     	if(operators == true) {
     		// set decimal point indicator to false
     		decPoint = false;
@@ -258,6 +278,46 @@ public class Calculator extends JFrame implements ActionListener
 	    		System.out.println("Num2: " + num2.toString());
     		}
     	}
+
+    	// check if user clicked an operator other than square root after 
+    	// two numbers were entered
+    	if(((num1.length() > 0) && (num2.length() > 0)) && ((ae.getSource() == plus) || (ae.getSource() == minus) ||
+    		(ae.getSource() == div) || (ae.getSource() == mult))) {
+
+    		firstNum = Double.parseDouble(num1.toString());
+    		System.out.println("Num1: " + num1.toString());
+
+    		// store second number as a Double
+    		secondNum = Double.parseDouble(num2.toString());
+    		System.out.println("Num2: " + num2.toString());
+    		// store source of operator in variable
+	    	operator = (((JButton)ae.getSource()).getText());
+	    	System.out.println(operator);
+    		// send numbers and operator to calc()
+    		calc(firstNum, secondNum, operator);
+    	}
+
+
+
+    	// check if user clicked the equal sign after 
+    	// two numbers were entered
+    	if((ae.getSource() == equals) && (num1.length() > 0) && 
+    		(num2.length() > 0)) {
+    		
+    		firstNum = Double.parseDouble(num1.toString());
+    		System.out.println("Num1: " + num1.toString());
+
+    		// store second number as a Double
+    		secondNum = Double.parseDouble(num2.toString());
+    		// send numbers and operator to calc()
+    		calc(firstNum, secondNum, operator);
+
+    	}
+
+    	
+
+    	
+    	
     	// check if clear button was clicked
     		if(ae.getSource() == clear) {
     			// clear display
