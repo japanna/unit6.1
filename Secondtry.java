@@ -163,7 +163,7 @@ public class Secondtry extends JFrame implements ActionListener
 				JButton temp=(JButton)ae.getSource();
 		
 				display.append(temp.getText());	
-		
+
 				if (display.getText().equals(".")) 
 					display.setText("0.");
 
@@ -179,12 +179,15 @@ public class Secondtry extends JFrame implements ActionListener
 		// check if an operator was clicked
 		if((ae.getSource() == plus) || (ae.getSource() == minus) ||
     		(ae.getSource() == div) || (ae.getSource() == mult)) {
-		
+			
+			// store the operator that was clicked
 			JButton temp=(JButton)ae.getSource();
 			operator = temp.getText();
 			System.out.println("Operator is: " + operator);
 			
+			// if this is the first time an operator was clicked
 			if (operators) {
+				// the number last entered becomes the first number
 				firstNum = secondNum;
 				System.out.println("firstNum is: " + secondNum);
 			}
@@ -196,6 +199,10 @@ public class Secondtry extends JFrame implements ActionListener
 			doClear = true;
 		}
 
+		if(ae.getSource() == root) {
+			squareRoot();
+		}
+
 		if(ae.getSource() == clear) {
 			clear();
 		}
@@ -204,6 +211,20 @@ public class Secondtry extends JFrame implements ActionListener
 			calc();
 		}
 	}	
+
+	public void squareRoot() {
+		if (secondNum == 0.0) {
+			display.setText("ERROR");
+			firstNum = 0.0;
+			secondNum = 0.0;
+			operators = true;
+			doClear = true;
+		}
+		else {
+			secondNum = Math.sqrt(secondNum);
+			display.setText(String.valueOf(secondNum));
+		}
+	}
 
 		public void calc() {
 
@@ -219,14 +240,6 @@ public class Secondtry extends JFrame implements ActionListener
 			if((operator == "/") && secondNum != 0){
 				System.out.println("firstNum div by secondNum is: " + firstNum);
 				firstNum /= secondNum;}
-			if(operator == "\u221A"){
-				
-				secondNum = Math.sqrt(secondNum);
-			System.out.println("square of secondNum is: " + secondNum);}
-			
-	
-			//operator = "=";
-			//System.out.println("Operator is: =");
 
 			operators = true;
 
