@@ -31,13 +31,13 @@ public class Secondtry extends JFrame implements ActionListener
 	// string representing addend, subtractor, multiplicator or denominator
 	private StringBuilder num2 = new StringBuilder();
 	// Double representing addend, subtractor, multiplicator or numerator
-	private Double firstNum;
+	private Double firstNum = null;
 	// Double representing addend, subtractor, multiplicator or denominator
-	private Double secondNum;
-	// result of a calculation
-	private Double result = null;
+	private Double secondNum = null;
 	// String representing an operator (+, -, *, /, or square root)
-	private String operator;
+	private String operator = null;
+
+	private Boolean oldOp = false;
 	
 
 	// indicates whether the display should be cleared
@@ -151,20 +151,31 @@ public class Secondtry extends JFrame implements ActionListener
 
 	public void actionPerformed( ActionEvent ae )
     {
+    	// clear display if new number is to be entered
 		if(doClear)
-			// clear display
 	    	display.setText(null);
 			
+		// if decimal point is entered for the first time in number
+    	if((ae.getSource() == point) && decPoint == false) {
+    		display.append(".");
+    		// disallow more decimal points
+			decPoint = true;
+    	}
+
+    	// if decimal point is the first in a number, display "0."
+			if (display.getText().equals(".")) 
+				display.setText("0.");
+    	
 		// check if a digit was clicked
 	    for (int i = 0; i < 10; i++) {
 
-	    	if((ae.getSource() == jb[i]) && (num1.length() < 15)){
-
-				JButton temp=(JButton)ae.getSource();
+	    	// append digits to number while number is less than 15 digits long
+	    	if((ae.getSource() == jb[i])  && (display.getText().length() < 15)) {
 		
-				display.append(temp.getText());	
+				display.append(((JButton)ae.getSource()).getText());	
 
-				if (display.getText().equals(".")) 
+				// disallow leading zeros
+				if (display.getText().equals("0")) 
 					display.setText("0.");
 
 				// store as a Double
@@ -172,35 +183,49 @@ public class Secondtry extends JFrame implements ActionListener
 	    		System.out.println("SecondNum is: " + secondNum);
 
 	    		doClear = false;
+	    		// only if you click another digit
+	    		oldOp = false;
 	    	}
 
-		}
+		}	
 
 		// check if an operator was clicked
 		if((ae.getSource() == plus) || (ae.getSource() == minus) ||
     		(ae.getSource() == div) || (ae.getSource() == mult)) {
-			
-			// store the operator that was clicked
-			JButton temp=(JButton)ae.getSource();
-			operator = temp.getText();
-			System.out.println("Operator is: " + operator);
-			
-			// if this is the first time an operator was clicked
-			if (operators) {
-				// the number last entered becomes the first number
-				firstNum = secondNum;
-				System.out.println("firstNum is: " + secondNum);
-			}
-			else {
-				calc();
-			}
+			decPoint = false;
+			if(oldOp == false) {
+				// if this is the first time an operator was clicked
+				if (operators) {
+					// the number last entered becomes the first number
+					firstNum = secondNum;
+					System.out.println("firstNum is: " + secondNum);
+				}
+				else {
+					
+					calc();
+				}
 
-			operators = false;
-			doClear = true;
+				// store the operator that was clicked
+				JButton temp=(JButton)ae.getSource();
+				operator = temp.getText();
+				System.out.println("Operator is: " + operator);
+				operators = false;
+				doClear = true;
+				oldOp = true;
+			}
+			// if an operator was clicked without a digit having been entered between
+			else {
+				// store the operator that was clicked
+				JButton temp=(JButton)ae.getSource();
+				operator = temp.getText();
+				System.out.println("Operator is: " + operator);
+				display.setText(String.valueOf(firstNum));
+			}
 		}
 
 		if(ae.getSource() == root) {
 			squareRoot();
+			decPoint = false;
 		}
 
 		if(ae.getSource() == clear) {
@@ -237,23 +262,37 @@ public class Secondtry extends JFrame implements ActionListener
 			if(operator == "*") {
 				firstNum *= secondNum;
 			System.out.println("firstNum times secondNum is: " + firstNum);}
-			if((operator == "/") && secondNum != 0){
+			if((operator == "/") && secondNum != 0.0){
 				System.out.println("firstNum div by secondNum is: " + firstNum);
 				firstNum /= secondNum;}
-
+			if((operator == "/") && secondNum == 0.0){
+				display.setText("ERROR");
+				System.out.println(display.getText());
+				firstNum = 0.0;
+				secondNum = 0.0;
+				operators = true;
+				doClear = true;
+			}
+				
+			if (!(display.getText().equals("ERROR"))) {
 			operators = true;
+			decPoint = false;
 
 			display.setText(String.valueOf(firstNum));
 		
 			secondNum = firstNum;
+
+			
 			System.out.println("SecondNum is: " + firstNum);
 		}
 
+		}
+
 		public void clear() {
-		firstNum = 0.0;
-		secondNum = 0.0;
-		operators = true;
-		display.setText(null);
+			firstNum = 0.0;
+			secondNum = 0.0;
+			operators = true;
+			display.setText(null);
 
 		}
 	
