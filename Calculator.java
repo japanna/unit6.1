@@ -4,7 +4,7 @@
 * This program implements a basic calculator
 *
 * @author	Anna Ntenta
-* @version	1.0 Last Modified 4/10/2014
+* @version	1.0 Last Modified 4/11/2014
 */
 
 import javax.swing.*;                // Swing components
@@ -16,20 +16,32 @@ import javax.swing.border.*;
 
 public class Calculator extends JFrame implements ActionListener
 {
-	// number of digits and dec points allowed in display
+	// number of digits (inclusive of decimal point) allowed in the display
 	public static final int CAPACITY = 15;
 
 	// private variables
 	private JFrame frame;
 	private JTextArea display;
+	// boolean set to true if number already has a decimal point
 	private Boolean decPoint = false;
+	// boolean set to true if an operator has been clicked
 	private Boolean operators = false;
+	// string representing addend, subtractor, multiplicator or numerator
 	private StringBuilder num1 = new StringBuilder();
+	// string representing addend, subtractor, multiplicator or denominator
 	private StringBuilder num2 = new StringBuilder();
+	// Double representing addend, subtractor, multiplicator or numerator
 	private Double firstNum;
+	// Double representing addend, subtractor, multiplicator or denominator
 	private Double secondNum;
+	// result of a calculation
 	private Double result = null;
+	// String representing an operator (+, -, *, /, or square root)
 	private String operator;
+	// String representing an operator (+, -, *, /, or square root)
+	private String operator2;
+
+	// indicates w
 
 
 	// array of number buttons
@@ -134,7 +146,7 @@ public class Calculator extends JFrame implements ActionListener
 	}
 
 	// calculates square root
-	public void calc(Double first, String operand)
+	public void calc1(Double first, String operand)
 	{
 		if(operand == "\u221A")
 		result = Math.sqrt(first);
@@ -148,6 +160,21 @@ public class Calculator extends JFrame implements ActionListener
 		//operators = false;
 		display.append(result.toString());
 		System.out.println("Num 1 now (one number calc): " + num1);
+	}
+
+	// calculates square root
+	public void calc2(Double second, String operand)
+	{
+		if(operand == "\u221A")
+		result = Math.sqrt(second);
+
+    	// clear num2
+    	num2.setLength(0);
+    	display.setText(null);
+		num2.append(result);
+		//operators = false;
+		display.append(result.toString());
+		System.out.println("Num 2 now (one number calc): " + num2);
 	}
 
 	public void calc(Double first, Double second, String operand)
@@ -177,6 +204,20 @@ public class Calculator extends JFrame implements ActionListener
 
 	public void actionPerformed( ActionEvent ae )
     {
+		if(blnClear)
+			txtCalc.Text="";
+		
+		Button b3=(Button)obj;
+		
+		txtCalc.Text+=b3.Text;	
+		
+		if (txtCalc.Text==".")
+			txtCalc.Text="0.";
+		dblSec=Convert.ToDouble(txtCalc.Text);
+		
+		blnClear=false;
+	}
+
     	// the first number entered after clear or launch
     	if(operators == false) {
     		// disallow leading zeros 
@@ -211,8 +252,61 @@ public class Calculator extends JFrame implements ActionListener
     		}
     	}
 
-    	// check if user clicked square root after a number has been entered
-    	if((num1.length() > 0) && ((ae.getSource() == root))) {
+    	/*
+    	// the first number entered after clear or launch
+    	if(operators == false) {
+    		// allow one zero 
+    		if((ae.getSource() == jb[0]) && num1.length() == 0)  {
+    			// add to num1 array list
+	    		num1.append("0");
+	    		System.out.println("Num1: " + num1.toString());
+	    		// display the digit
+	    		display.append("0");
+	    		System.out.println("Num1 Char at 0: " + num1.charAt(0));
+    		}
+    		// allow any digits as long as the first one isn't 0
+    		if((num1.length() > 0) && (num1.charAt(0) != '0')) {
+
+		    	for(int i = 0; i < 10; i++) {
+		    		// if number and it is less than 15 digits
+		    		if((ae.getSource() == jb[i]) && (num1.length() < 15)){
+		    			// add to num1 array list
+		    			num1.append(jb[i].getText());
+		    			// display the digit
+		    			display.append(jb[i].getText());
+		    			System.out.println("Num1: " + num1.toString());
+	    			}
+	    		}
+    		}
+    		if(ae.getSource() != jb[0])
+    		for(int i = 1; i < 10; i++) {
+		    		// if number and it is less than 15 digits
+		    		if((ae.getSource() == jb[i]) && (num1.length() < 15)){
+		    			// add to num1 array list
+		    			num1.append(jb[i].getText());
+		    			// display the digit
+		    			display.append(jb[i].getText());
+		    			System.out.println("Num1: " + num1.toString());
+	    			}
+	    		}
+    		
+    		// else check if a number other than 0 was clicked
+    		
+    		// check if decimal point was clicked for first time
+    		if((ae.getSource() == point) && (decPoint == false) && 
+    			(num1.length() < 15)) {
+    			// disallow more decimal points
+    			decPoint = true;
+    			// add to num1 array list
+	    		num1.append(".");
+	    		// display the digit
+	    		display.append(".");
+	    		System.out.println("Num1: " + num1.toString());
+    		}
+    	} */
+
+    	// if user clicked square root after the first number has been entered
+    	if(((num1.length() > 0 ) && (num2.length() == 0)) && ((ae.getSource() == root))) {
     		// indicate that first number has been entered
 	    		operators = true;
 	    		// store first number as a Double
@@ -222,7 +316,22 @@ public class Calculator extends JFrame implements ActionListener
 	    		operator = (((JButton)ae.getSource()).getText());
 
 	    		// send number and operator to calc()
-    			calc(firstNum, operator);
+    			calc1(firstNum, operator);
+    	}
+
+    	// if user clicked square root after a second number has been entered
+    	if((num2.length() > 0) && ((ae.getSource() == root))) {
+	    		// store first number as a Double
+	    		secondNum = Double.parseDouble(num2.toString());
+	    		System.out.println(secondNum);
+	    		// store source of operator in variable
+	    		operator2 = (((JButton)ae.getSource()).getText());
+
+	    		// send number and operator to calc2()
+    			calc2(secondNum, operator2);
+    			// store first number as a Double
+	    		secondNum = Double.parseDouble(num2.toString());
+    			calc(firstNum, secondNum, operator);
     	}
 
     	// check if user clicked an operator other than root after one number has been entered
@@ -303,7 +412,7 @@ public class Calculator extends JFrame implements ActionListener
     	// two numbers were entered
     	if((ae.getSource() == equals) && (num1.length() > 0) && 
     		(num2.length() > 0)) {
-    		
+
     		firstNum = Double.parseDouble(num1.toString());
     		System.out.println("Num1: " + num1.toString());
 
