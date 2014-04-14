@@ -1,10 +1,11 @@
 // Calculator.java
 
-/****
-* This program implements a basic calculator
+/**
+* Implements a basic calculator with  a +/- button that negates the current 
+* display. Clicking this button repeatedly will toggle the value’s sign.
 *
 * @author	Anna Ntenta
-* @version	1.0 Last Modified 4/11/2014
+* @version	1.0 Last Modified 4/13/2014
 */
 
 import javax.swing.*;                // Swing components
@@ -13,41 +14,52 @@ import java.io.*;                    // File I/O
 import java.awt.event.*;             // ActionListener, etc.
 import java.util.*;                  
 import javax.swing.border.*;
+import java.text.NumberFormat;
+import java.text.DecimalFormat;
+
 
 public class Calculator extends JFrame implements ActionListener
 {
 	// number of digits (inclusive of decimal point) allowed in the display
 	public static final int CAPACITY = 15;
+	// set maximum digits to the right of decimal to 10
+	public static final int MAX_DECIMALS = 10;
+	// set min digits to the right of decimal to 0
+	public static final int MIN_DECIMALS = 0;
 
-	// private variables
 	private JFrame frame;
+
 	private JTextArea display;
-	// boolean set to true if number already has a decimal point
-	private Boolean decPoint = false;
-	// boolean set to true if an operator has been clicked
-	private Boolean operators = false;
-	// string representing addend, subtractor, multiplicator or numerator
-	private StringBuilder num1 = new StringBuilder();
-	// string representing addend, subtractor, multiplicator or denominator
-	private StringBuilder num2 = new StringBuilder();
+
+	// boolean set to true if  a number already has a decimal point
+	private Boolean decPoint;
+
+	// boolean set to true if an operator has already been clicked
+	private Boolean operators;
+
 	// Double representing addend, subtractor, multiplicator or numerator
 	private Double firstNum;
+
 	// Double representing addend, subtractor, multiplicator or denominator
 	private Double secondNum;
-	// result of a calculation
-	private Double result = null;
+
 	// String representing an operator (+, -, *, /, or square root)
 	private String operator;
-	// String representing an operator (+, -, *, /, or square root)
-	private String operator2;
 
-	// indicates w
+	// boolean set to true if a second operator is clicked immediately after an operator
+	private Boolean secondOp;
 
+	// boolean set to true if a second equal sign is clicked immediately after equal sign
+	private Boolean secondEquals;
+	
+	// indicates whether the display should be cleared
+	private Boolean doClear;
 
 	// array of number buttons
 	private JButton [] jb = new JButton[10];
+
 	//operator buttons
-	private JButton clear, root, plus, minus, div, mult, equals, point;
+	private JButton clear, root, plus, minus, div, mult, equals, point, negate;
 
 
 	/****
@@ -55,6 +67,15 @@ public class Calculator extends JFrame implements ActionListener
      */
 	public Calculator()
 	{
+		decPoint = false;
+		firstNum = 0.0;
+		secondNum = 0.0;
+		operator = null;
+		secondOp = false;
+		secondEquals = false;
+		operators = true;
+		doClear = false; 
+
 		frame = new JFrame ("Calculator");
 		frame.setLayout( new BorderLayout( 10, 10 ));
 
@@ -112,6 +133,11 @@ public class Calculator extends JFrame implements ActionListener
 		point.addActionListener(this);
 		point.setFont (new Font ("SansSerif", Font.BOLD, 14));
 
+		// create the negate button
+		negate = new JButton("\u002B\u002F\u002D");
+		negate.addActionListener(this);
+		negate.setFont (new Font ("SansSerif", Font.BOLD, 14));
+
 		// button grid
 		JPanel buttons = new JPanel(new GridLayout(5, 4, 4, 4));
 		
@@ -134,6 +160,7 @@ public class Calculator extends JFrame implements ActionListener
 		buttons.add(equals);
 		buttons.add(jb[0]);
 		buttons.add(point);
+		buttons.add(negate);
 
 		frame.add (display, BorderLayout.CENTER);
 		frame.add (buttons, BorderLayout.SOUTH);
@@ -142,306 +169,222 @@ public class Calculator extends JFrame implements ActionListener
         frame.setVisible (true);
         frame.setResizable(false);
         frame.setDefaultCloseOperation (JFrame.EXIT_ON_CLOSE);  
-	
-	}
-
-	// calculates square root
-	public void calc1(Double first, String operand)
-	{
-		if(operand == "\u221A")
-		result = Math.sqrt(first);
-
-		// clear num1
-    	num1.setLength(0);
-    	// clear num2
-    	num2.setLength(0);
-    	display.setText(null);
-		num1.append(result);
-		//operators = false;
-		display.append(result.toString());
-		System.out.println("Num 1 now (one number calc): " + num1);
-	}
-
-	// calculates square root
-	public void calc2(Double second, String operand)
-	{
-		if(operand == "\u221A")
-		result = Math.sqrt(second);
-
-    	// clear num2
-    	num2.setLength(0);
-    	display.setText(null);
-		num2.append(result);
-		//operators = false;
-		display.append(result.toString());
-		System.out.println("Num 2 now (one number calc): " + num2);
-	}
-
-	public void calc(Double first, Double second, String operand)
-	{
-		if(operand == "+")
-		result = first + second;
-		if(operand == "-")
-		result = first - second;
-		if(operand == "*")
-		result = first * second;
-		if((operand == "/") && second != 0)
-		result = first / second;
-
-		//System.out.println(result);
-		// clear num1
-    	num1.setLength(0);
-    	// clear num2
-    	num2.setLength(0);
-    	display.setText(null);
-		num1.append(result);
-		//operators = false;
-		display.append(result.toString());
-		System.out.println("Num 1 now (two number calc): " + num1);
-
-
 	}
 
 	public void actionPerformed( ActionEvent ae )
     {
-		if(blnClear)
-			txtCalc.Text="";
-		
-		Button b3=(Button)obj;
-		
-		txtCalc.Text+=b3.Text;	
-		
-		if (txtCalc.Text==".")
-			txtCalc.Text="0.";
-		dblSec=Convert.ToDouble(txtCalc.Text);
-		
-		blnClear=false;
+    	// clear display if new number is to be entered
+		if(doClear)
+	    	display.setText(null);
+	    // if decimal point is clicked for the first time in a number
+	    if((ae.getSource() == point) && (decPoint == false)) {
+	    	display.append(".");
+	    	// disallow leading zeros
+			if (display.getText().equals(".")) {
+				display.setText("0.");
+			}
+			// store 0. as a Double
+		    secondNum = Double.parseDouble(display.getText());
+		    // disallow additional decimal points
+	    	decPoint = true;
+	    	// do not clear display the next time a button is clicked
+	    	doClear = false;
+	    	// this is a number, so a subsequent operator will be the one applied
+	    	secondOp = false;
+	    	// this is a number, so a subsequent equal sign will be allowed
+	    	secondEquals = false;
+	    }
+	    else {
+			// check if a digit was clicked
+		    for (int i = 0; i < 10; i++) {
+
+		    	// append digits to number while number is less than 15 digits long
+		    	if((ae.getSource() == jb[i]) && (display.getText().length() < 15)) {
+		    		// display digit
+					display.append(((JButton)ae.getSource()).getText());
+
+					if (display.getText().equals("0")) {
+						display.setText("0.");
+						// disallow additional decimal points in this number
+						decPoint = true;
+					}
+
+					// store as a Double
+		    		secondNum = Double.parseDouble(display.getText());
+		    		// this is a number, so a subsequent equal sign will be allowed
+		    		secondEquals = false;
+		    		doClear = false;
+		    		// this is a number, so subsequent operator will be the one applied
+		    		secondOp = false;
+		    	}
+			}
+		}	
+
+		// if an operator was clicked
+		if((ae.getSource() == plus) || (ae.getSource() == minus) ||
+    		(ae.getSource() == div) || (ae.getSource() == mult)) {
+			// decimal point allowed again
+			decPoint = false;
+			// if operator was clicked immediately after a number 
+			if(secondOp == false) {
+				// if this is the first operator in the calculation
+				if (operators) {
+					// the number last entered becomes the first number
+					firstNum = secondNum;
+				}
+				// if this is the second operator in a calculation, calculate
+				else {
+					calc();
+				}
+
+				// store the operator that was clicked
+				JButton temp=(JButton)ae.getSource();
+				operator = temp.getText();
+				operators = false;
+				doClear = true;
+				secondOp = true;
+			}
+			// if an operator was clicked immediately after another operator
+			else {
+				// store the new operator that was clicked
+				JButton temp=(JButton)ae.getSource();
+				// make it the operator to be applied
+				operator = temp.getText();
+				// keep displaying the first operand
+				display.setText(String.valueOf(format(firstNum)));
+				// decimal point allowed again
+				decPoint = false;
+			}
+		}
+
+		// calculate square root
+		if(ae.getSource() == root) {
+			squareRoot();
+		}
+
+		// negate number
+		if(ae.getSource() == negate) {
+			negate();
+		}
+
+		// if clear button is clicked
+		if(ae.getSource() == clear) {
+			clear();
+		}
+
+		// if equal sign is clicked (once), calculate 
+		if((ae.getSource() == equals) && (secondEquals == false)) {
+			calc();
+			decPoint = true;
+		}
+	}	
+
+	/**
+     *  Negates number
+     */
+	public void negate() {
+		if (secondNum > 0) {
+			secondNum -= (2 * secondNum);
+		}
+		else if (secondNum < 0) {
+			secondNum += -(2 * secondNum);
+		}
+		display.setText(String.valueOf(format(secondNum)));
 	}
 
-    	// the first number entered after clear or launch
-    	if(operators == false) {
-    		// disallow leading zeros 
-    		if((ae.getSource() == jb[0]) && (num1.length() != 0) && 
-    			(num1.length() < 15))  {
-    			// add to num1 array list
-	    		num1.append("0");
-	    		// display the digit
-	    		display.append("0");
-    		}
-    		// check if a digit other than 0 was clicked
-	    	for(int i = 1; i < 10; i++) {
-	    		// if number and it is less than 15 digits
-	    		if((ae.getSource() == jb[i]) && (num1.length() < 15)){
-	    			// add to num1 array list
-	    			num1.append(jb[i].getText());
-	    			// display the digit
-	    			display.append(jb[i].getText());
-	    			System.out.println("Num1: " + num1.toString());
-    			}
-    		}
-    		// check if decimal point was clicked for first time
-    		if((ae.getSource() == point) && (decPoint == false) && 
-    			(num1.length() < 15)) {
-    			// disallow more decimal points
-    			decPoint = true;
-    			// add to num1 array list
-	    		num1.append(".");
-	    		// display the digit
-	    		display.append(".");
-	    		System.out.println("Num1: " + num1.toString());
-    		}
-    	}
 
-    	/*
-    	// the first number entered after clear or launch
-    	if(operators == false) {
-    		// allow one zero 
-    		if((ae.getSource() == jb[0]) && num1.length() == 0)  {
-    			// add to num1 array list
-	    		num1.append("0");
-	    		System.out.println("Num1: " + num1.toString());
-	    		// display the digit
-	    		display.append("0");
-	    		System.out.println("Num1 Char at 0: " + num1.charAt(0));
-    		}
-    		// allow any digits as long as the first one isn't 0
-    		if((num1.length() > 0) && (num1.charAt(0) != '0')) {
+	/**
+     *  Calculates square root
+     *  Yields an ERROR if applied to zero
+     */
+	public void squareRoot() {
+		// square root of zero yields an ERROR
+		if (secondNum == 0.0) {
+			display.setText("ERROR");
+			// reset
+			firstNum = 0.0;
+			secondNum = 0.0;
+			operators = true;
+			doClear = true;
+		}
+		// square root of non-zero
+		else {
+			secondNum = Math.sqrt(secondNum);
+			display.setText(String.valueOf(format(secondNum)));
+			// indicates that it's OK to enter a decimal point again
+			decPoint = false;
+		}
+	}
 
-		    	for(int i = 0; i < 10; i++) {
-		    		// if number and it is less than 15 digits
-		    		if((ae.getSource() == jb[i]) && (num1.length() < 15)){
-		    			// add to num1 array list
-		    			num1.append(jb[i].getText());
-		    			// display the digit
-		    			display.append(jb[i].getText());
-		    			System.out.println("Num1: " + num1.toString());
-	    			}
-	    		}
-    		}
-    		if(ae.getSource() != jb[0])
-    		for(int i = 1; i < 10; i++) {
-		    		// if number and it is less than 15 digits
-		    		if((ae.getSource() == jb[i]) && (num1.length() < 15)){
-		    			// add to num1 array list
-		    			num1.append(jb[i].getText());
-		    			// display the digit
-		    			display.append(jb[i].getText());
-		    			System.out.println("Num1: " + num1.toString());
-	    			}
-	    		}
-    		
-    		// else check if a number other than 0 was clicked
-    		
-    		// check if decimal point was clicked for first time
-    		if((ae.getSource() == point) && (decPoint == false) && 
-    			(num1.length() < 15)) {
-    			// disallow more decimal points
-    			decPoint = true;
-    			// add to num1 array list
-	    		num1.append(".");
-	    		// display the digit
-	    		display.append(".");
-	    		System.out.println("Num1: " + num1.toString());
-    		}
-    	} */
+	/**
+     *  Calculates (+, -, * and /)
+     */
+	public void calc() {
 
-    	// if user clicked square root after the first number has been entered
-    	if(((num1.length() > 0 ) && (num2.length() == 0)) && ((ae.getSource() == root))) {
-    		// indicate that first number has been entered
-	    		operators = true;
-	    		// store first number as a Double
-	    		firstNum = Double.parseDouble(num1.toString());
-	    		System.out.println(firstNum);
-	    		// store source of operator in variable
-	    		operator = (((JButton)ae.getSource()).getText());
+		if(operator== "+") {
+			firstNum += secondNum;
+		}
+		if(operator == "-"){
+			firstNum -= secondNum;
+		}
+		if(operator == "*") {
+			firstNum *= secondNum;
+		}
+		// division by non-zero
+		if((operator == "/") && secondNum != 0.0) {
+			firstNum /= secondNum;
+		}
+		// division by zero
+		if((operator == "/") && secondNum == 0.0) {
+			display.setText("ERROR");
+			// reset
+			firstNum = 0.0;
+			secondNum = 0.0;
+			operators = true;
+			doClear = true;
+		}
+			
+		// if the calculation did not yield an ERROR	
+		if (!(display.getText().equals("ERROR"))) {
+			// set ready for new number
+			operators = true;
+			// it's OK to enter a decimal point again
+			decPoint = false;
+			// clicking the equals-button right now does nothing
+			secondEquals = true;
+			// display formatted result
+			display.setText(String.valueOf(format(firstNum)));
+			// the result of the calculation is now the first operand in 
+			// subsequent calculations
+			secondNum = firstNum;
+		}
+	}
 
-	    		// send number and operator to calc()
-    			calc1(firstNum, operator);
-    	}
+	/**
+     *  Clears the display and resets values for new calculation
+     */
+	public void clear() {
+		firstNum = 0.0;
+		secondNum = 0.0;
+		operators = true;
+		display.setText(null);
+		decPoint = false;
+		secondEquals = false;
+	}
 
-    	// if user clicked square root after a second number has been entered
-    	if((num2.length() > 0) && ((ae.getSource() == root))) {
-	    		// store first number as a Double
-	    		secondNum = Double.parseDouble(num2.toString());
-	    		System.out.println(secondNum);
-	    		// store source of operator in variable
-	    		operator2 = (((JButton)ae.getSource()).getText());
-
-	    		// send number and operator to calc2()
-    			calc2(secondNum, operator2);
-    			// store first number as a Double
-	    		secondNum = Double.parseDouble(num2.toString());
-    			calc(firstNum, secondNum, operator);
-    	}
-
-    	// check if user clicked an operator other than root after one number has been entered
-    	if(((num1.length() > 0) && (num2.length() == 0)) && ((ae.getSource() == plus) || (ae.getSource() == minus) ||
-    		(ae.getSource() == div) || (ae.getSource() == mult))) {
-    			// set operator click to "true"
-	    		operators = true;
-	    		// store first number as a Double
-	    		firstNum = Double.parseDouble(num1.toString());
-	    		System.out.println(firstNum);
-	    		// store source of operator in variable
-	    		operator = (((JButton)ae.getSource()).getText());
-	    		System.out.println(operator);
-    	}
-
-    	// second number (only stored after an operator has been typed in)
-    	if(operators == true) {
-    		// set decimal point indicator to false
-    		decPoint = false;
-    		// disallow leading zeros 
-    		if((ae.getSource() == jb[0]) && (num2.length() != 0) && 
-    			(num2.length() < 15))  {
-    			// add to num1 array list
-	    		num2.append("0");
-	    		// display the digit
-	    		display.append("0");
-    		}
-    		// check if a digit other than 0 was clicked
-	    	for(int i = 1; i < 10; i++) {
-	    		// if number and it is less than 15 digits
-	    		if((ae.getSource() == jb[i]) && (num2.length() < 15)){
-	    			//if this was the first digit in second number
-	    			if(num2.length() == 0) {
-	    				// clear display
-	    				display.setText(null);
-	    			}
-	    			// add to num1 array list
-	    			num2.append(jb[i].getText());
-	    			// display the digit
-	    			display.append(jb[i].getText());
-	    			System.out.println("Num2: " + num2.toString());
-    			}
-    		}
-    		// check if decimal point was clicked for first time
-    		if((ae.getSource() == point) && (decPoint == false) && 
-    			(num2.length() < 15)) {
-    			// disallow more decimal points
-    			decPoint = true;
-    			// add to num1 array list
-	    		num2.append(".");
-	    		// display the digit
-	    		display.append(".");
-	    		System.out.println("Num2: " + num2.toString());
-    		}
-    	}
-
-    	// check if user clicked an operator other than square root after 
-    	// two numbers were entered
-    	if(((num1.length() > 0) && (num2.length() > 0)) && ((ae.getSource() == plus) || (ae.getSource() == minus) ||
-    		(ae.getSource() == div) || (ae.getSource() == mult))) {
-
-    		firstNum = Double.parseDouble(num1.toString());
-    		System.out.println("Num1: " + num1.toString());
-
-    		// store second number as a Double
-    		secondNum = Double.parseDouble(num2.toString());
-    		System.out.println("Num2: " + num2.toString());
-    		// store source of operator in variable
-	    	operator = (((JButton)ae.getSource()).getText());
-	    	System.out.println(operator);
-    		// send numbers and operator to calc()
-    		calc(firstNum, secondNum, operator);
-    	}
-
-
-
-    	// check if user clicked the equal sign after 
-    	// two numbers were entered
-    	if((ae.getSource() == equals) && (num1.length() > 0) && 
-    		(num2.length() > 0)) {
-
-    		firstNum = Double.parseDouble(num1.toString());
-    		System.out.println("Num1: " + num1.toString());
-
-    		// store second number as a Double
-    		secondNum = Double.parseDouble(num2.toString());
-    		// send numbers and operator to calc()
-    		calc(firstNum, secondNum, operator);
-
-    	}
-
-    	
-
-    	
-    	
-    	// check if clear button was clicked
-    		if(ae.getSource() == clear) {
-    			// clear display
-    			display.setText(null);
-    			// clear decimal point indicator
-    			decPoint = false;
-    			// clear operator indicator
-    			operators = false;
-    			// clear num1
-    			num1.setLength(0);
-    			// clear num2
-    			num2.setLength(0);
-    			System.out.println(num1.length());
-    		}	
+	/**
+     *  Formats the output that is shown in display
+     *
+     *  @param  n   The number to be formatted
+     *  @return 	Formatted number
+     */
+	public static String format(Number n) {
+        NumberFormat format = DecimalFormat.getInstance();
+        format.setMinimumFractionDigits(MIN_DECIMALS);
+        format.setMaximumFractionDigits(MAX_DECIMALS);
+        return format.format(n);
     }
+	
 
     public static void main(String args[]) 
     {
